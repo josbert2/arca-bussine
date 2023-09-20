@@ -1,21 +1,74 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-
 model users {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime?
+  updatedAt DateTime  @updatedAt
+}
+
+model orders {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique(map: "Orders_email_key")
+  password  String
+  createdAt DateTime?
+  updatedAt DateTime
+}
+
+model cliente {
+  id       Int     @id @default(autoincrement())
+  nombre   String
+  email    String
+  telefono String?
+  venta    venta[]
+}
+
+model inventario {
+  id         Int      @id @default(autoincrement())
+  cantidad   Int
+  productoId Int
+  producto   producto @relation(fields: [productoId], references: [id], map: "Inventario_productoId_fkey")
+
+  @@index([productoId], map: "Inventario_productoId_fkey")
+}
+
+model pago {
+  id      Int      @id @default(autoincrement())
+  monto   Float
+  fecha   DateTime
+  ventaId Int
+  venta   venta    @relation(fields: [ventaId], references: [id], map: "Pago_ventaId_fkey")
+
+  @@index([ventaId], map: "Pago_ventaId_fkey")
+}
+
+model producto {
+  id          Int          @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Float
+  inventario  inventario[]
+  venta       venta[]      @relation("productotoventa")
+}
+
+model venta {
+  id        Int        @id @default(autoincrement())
+  fecha     DateTime
+  monto     Float
+  clienteId Int
+  pago      pago[]
+  cliente   cliente    @relation(fields: [clienteId], references: [id], map: "Venta_clienteId_fkey")
+  producto  producto[] @relation("productotoventa")
+
+  @@index([clienteId], map: "Venta_clienteId_fkey")
 }
